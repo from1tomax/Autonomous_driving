@@ -1,0 +1,35 @@
+<launch>
+
+
+  <!-- Nodelet manager for this pipeline -->
+  <node pkg="nodelet" type="nodelet" args="manager"
+        name="record_player_manager" output="screen"/>
+
+
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 map OurCar/Sensors/DepthCamera 100" />
+  
+  <!-- Convert it into a point cloud -->
+  <node pkg="nodelet" type="nodelet" name="cloudify"
+        args="load depth_image_proc/point_cloud_xyz record_player_manager --no-bond">
+    <remap from="camera_info" to="/unity_ros/OurCar/Sensors/DepthCamera/camera_info"/>
+    <remap from="image_rect" to="/unity_ros/OurCar/Sensors/DepthCamera/image_raw"/>
+    <remap from="points" to="/unity_ros/OurCar/Sensors/DepthCamera/points"/>
+  </node>
+  
+
+
+  
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+		<param name="resolution" value="0.05" />
+		<param name="latch" value="false" />
+
+		<param name="frame_id" type="string" value="map" />
+    
+		<param name="sensor_model/max_range" value="5.0" />
+		
+		<remap from="cloud_in" to="/unity_ros/OurCar/Sensors/DepthCamera/points" />
+    <param name="base_frame_id" value="map" />
+	</node>
+  
+
+</launch>
